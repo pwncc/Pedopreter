@@ -4,11 +4,10 @@ import socket
 import os
 import pickle
 import time
-import pip
 
 TCP_IP = '127.0.0.1'
-TCP_PORT = 5006
-BUFFER_SIZE = 20  # Normally 1024, but we want fast response
+TCP_PORT = 80
+BUFFER_SIZE = 1024  # Normally 1024, but we want fast response
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.connect((TCP_IP, TCP_PORT))
@@ -46,9 +45,21 @@ while 1:
                 print("Retrying connection..")
 
     if not data: 
-        print("thats nothing") 
-        conn.close() 
-        reconnect()
+         while connected == False:
+            time.sleep(1)
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.connect((TCP_IP, TCP_PORT))
+                conn = s
+                connected = True
+                print("Woohoo Data is back!")
+                conn.settimeout(15)
+                dataraw = conn.recv(BUFFER_SIZE).decode()
+                data = dataraw.split()
+            except:
+                s.close()
+                print("Data lost..")
     try:
         print(data)
     except:
