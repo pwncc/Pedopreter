@@ -143,12 +143,24 @@ def main():
 
 def keepalive():
     while True:
-        time.sleep(5)
-        for x in sessions:
+        time.sleep(10)
+        for i, x in enumerate(sessions):
             try:
+                alive = False
                 x.send("keepalive".encode())
+                while alive == False:
+                    try:
+                        x.settimeout(15)
+                        it = x.recv(1024)
+                        if it.decode() == "still alive":
+                            alive = True
+                    except Exception:
+                        print("Session number: " + str(i) + ". On address: " + addresses.pop(i) + "Has lost connection or something wtf")
+                        del sessions[i]
+            
             except Exception:
-                pass
+                print("Session number: " + str(i) + ". On address: " + str(addresses.pop(i)) + "Has lost connection or something wtf")
+                del sessions[i]
 
 
 t1 = Thread(target = main)

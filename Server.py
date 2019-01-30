@@ -95,6 +95,8 @@ while 1:
                 print("something went wrong  " + str(e))
     elif data[0] == "":
         print("thats nothing")
+    elif data[0] == "keepalive":
+        s.send("still alive".encode())
     elif data[0] == "youtube":
         if len(data) == 2:
             os.system("start iexplore -k " + ytlink1 + data[1])
