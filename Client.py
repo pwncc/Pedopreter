@@ -5,12 +5,15 @@ import os
 import pickle
 import time
 import pip
-import _winapi
 import ctypes
-import winsound
 import threading as thread
 from threading import Thread
 #init
+
+try:
+    input = raw_input
+except:
+    print("you not on linux")
 
 
 print("What the fuck you want")

