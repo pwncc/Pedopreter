@@ -91,6 +91,7 @@ def background_listener():
     q.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     q.bind((TCP_IP, TCP_PORT))
     while True:
+        time.sleep(0.1)
         try:
             BUFFER_SIZE = 1024
             q.listen(1)

